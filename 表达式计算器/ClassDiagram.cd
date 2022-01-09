@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1" MembersFormat="FullSignature">
+  <Struct Name="Error">
+    <Position X="5.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAQAAAAAAAA=</HashCode>
+      <FileName>表达式计算器.cpp</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Typedef Name="TokenLevel" Collapsed="true">
+    <Position X="4.5" Y="2.25" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>表达式计算器.cpp</FileName>
+    </TypeIdentifier>
+  </Typedef>
+  <Typedef Name="Notation" Collapsed="true">
+    <Position X="2" Y="2.25" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>表达式计算器.cpp</FileName>
+    </TypeIdentifier>
+  </Typedef>
+  <Enum Name="ErrorType">
+    <Position X="6" Y="3.5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>ACAAAgAAAAAAAAAAAAAAQAAAAAgAAAAAAAAAAAQAAAA=</HashCode>
+      <FileName>表达式计算器.cpp</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="Microsoft YaHei UI" Size="9" />
+</ClassDiagram>
