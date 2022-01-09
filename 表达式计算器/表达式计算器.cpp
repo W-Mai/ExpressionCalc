@@ -2,8 +2,7 @@
 #include <map>
 #include <stack>
 #include <vector>
-#include <locale>
-#include <mutex>
+#include <iomanip>
 
 using namespace std;
 
@@ -28,17 +27,21 @@ struct Error {
 
 const TokenLevel tokenLevel{
 		{'+', 1},{'-', 1},
-		{'*', 2},{'/', 2},{'^', 2},
+		{'*', 2},{'/', 2},{'^', 2},{'%', 2},{'\\', 2},
 		{'(', 0},{')', 0}
 };
 
 const map<string, int> NoteTable = {
 	{"+",2},{"-",2},
-	{"*",2},{"/",2},{"^", 2},
+	{"*",2},{"/",2},{"^", 2},{"%", 2},{"\\", 2},
 	{"sqrt",1}, {"abs",1},
 	{"sin",1},{"cos", 1}, {"tan", 1},
+	{"asin",1},{"acos", 1}, {"atan", 1},
+	{"ln",1},{"log", 1}, {"log2", 1},
 	{"floor", 1}, {"ceil", 1},
-	{"sign", 1}
+	{"sign", 1},
+	{"PI", 0},
+	{"E", 0},
 };
 
 Notation reversePolishNotation(const string& expression, const TokenLevel& tokenLevel, Error&e);
@@ -69,7 +72,7 @@ int main() {
 
 		if (e.type != ErrorType::Well) {
 			cout << "[" + ErrorType2Name[e.type] + "]: " + e.msg + "." << endl;
-		} else cout << endl << "Result: " << val << endl;
+		} else cout << endl << "Result: "<< fixed <<setprecision(6) << val << endl;
 	}
 
 	system("pause");
@@ -91,7 +94,7 @@ string readNumber(string::const_iterator& it, const string& expression) {
 }
 
 inline bool checkFunc(string::const_iterator& it, const string& expression) {
-	return isalpha(*it);
+	return isalnum(*it);
 }
 
 string readFunc(string::const_iterator& it, const string& expression) {
@@ -173,11 +176,21 @@ Notation reversePolishNotation(const string& expression, const TokenLevel& token
 				param[i] = resultStack.top(); resultStack.pop();
 			}
 
-			if (note == "abs") resultStack.push(abs(param[0]));
+
+			if (note == "hello") { printf("Hi!"); resultStack.push(0);}
+			else if (note == "PI") { resultStack.push(3.1415926537579);}
+			else if (note == "E") { resultStack.push(2.718281828);}
+			else if (note == "abs") resultStack.push(abs(param[0]));
 			else if (note == "sqrt") resultStack.push(sqrt(param[0]));
 			else if (note == "sin") resultStack.push(sin(param[0]));
 			else if (note == "cos") resultStack.push(cos(param[0]));
-			else if (note == "tan") resultStack.push(tan(param[0]));
+			else if (note == "tan") resultStack.push(tan(param[0]));			
+			else if (note == "asin") resultStack.push(asin(param[0]));
+			else if (note == "acos") resultStack.push(acos(param[0]));
+			else if (note == "atan") resultStack.push(atan(param[0]));
+			else if (note == "ln") resultStack.push(log(param[0]));
+			else if (note == "log") resultStack.push(log10(param[0]));
+			else if (note == "log2") resultStack.push(log2(param[0]));
 			else if (note == "floor") resultStack.push(floor(param[0]));
 			else if (note == "ceil") resultStack.push(ceil(param[0]));
 			else if (note == "sign") resultStack.push(abs(param[0]) < 1e-10 ? 0 : param[0] > 0 ? 1 : -1);
@@ -187,6 +200,7 @@ Notation reversePolishNotation(const string& expression, const TokenLevel& token
 			else if (note == "*") resultStack.push(param[0] * param[1]);
 			else if (note == "/") resultStack.push(param[0] / param[1]);
 			else if (note == "^") resultStack.push(pow(param[0], param[1]));
+			else if (note == "%") resultStack.push(fmod(param[0], param[1]));
 
 			delete[] param;
 		}
