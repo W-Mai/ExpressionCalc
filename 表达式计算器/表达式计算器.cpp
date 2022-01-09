@@ -59,6 +59,10 @@ int main() {
 
 		//while (true) {
 		const auto res = reversePolishNotation(inputExpression, tokenLevel, e);
+		if (e.type != ErrorType::Well) {
+			cout << "[" + ErrorType2Name[e.type] + "]: " + e.msg + "." << endl;
+			continue;
+		}
 		const auto val = evalNotation(res, e);
 		//}
 
@@ -73,9 +77,10 @@ int main() {
 }
 
 inline bool checkNumber(string::const_iterator& it, const string& expression) {
-	return isdigit(*it) ||
-		(it == expression.begin() || *(it - 1) == '(') && ((*it == '-' || *it == '+') && (it + 1) != expression.end()) ||
-		*it == '.' && isdigit(*(it + 1));
+	return isdigit(*it) 
+		|| ((it == expression.begin() || *(it - 1) == '(') 
+			&& ((*it == '-' || *it == '+') && (it + 1) != expression.end()))
+		|| *it == '.' && (it + 1) != expression.end() && isdigit(*(it + 1));
 }
 
 string readNumber(string::const_iterator& it, const string& expression) {
@@ -120,6 +125,10 @@ Notation reversePolishNotation(const string& expression, const TokenLevel& token
 				}
 				buffer.pop_back();
 			} else {
+				auto search_res_ch = tokenLevel.find(ch);
+				auto search_res_back = tokenLevel.find(*buffer.back());
+				if (search_res_ch == tokenLevel.end()) { e = { ErrorType::SyntaxError, string({ch}) }; return result; }
+				if (search_res_back == tokenLevel.end()) { e = { ErrorType::SyntaxError, string({*buffer.back()}) }; return result; }
 				if (tokenLevel.at(ch) <= tokenLevel.at(*buffer.back())) {
 					while (!buffer.empty() && tokenLevel.at(ch) <= tokenLevel.at(*buffer.back())) {
 						result.push_back(string{ *buffer.back() });
@@ -142,7 +151,7 @@ Notation reversePolishNotation(const string& expression, const TokenLevel& token
 	if (notation.empty()) return INFINITY;
 	stack<double> resultStack;
 	for (const auto& note : notation) {
-		cout << note << " ";
+		//cout << note << " ";
 		string::const_iterator it = note.begin();
 		if (checkNumber(it, note)) {
 			resultStack.push(atof(note.c_str()));
