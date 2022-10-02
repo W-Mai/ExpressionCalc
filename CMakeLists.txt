@@ -3,7 +3,15 @@ project(ExpressionCalc)
 
 set(CMAKE_CXX_STANDARD 14)
 
-set(sources expression_calc.cpp)
+include_directories(src)
+add_subdirectory(src)
 
-add_library(expression_calc STATIC ${sources})
-target_include_directories(expression_calc PUBLIC .)
+file(GLOB APP_SOURCES
+        example/xCalc.cpp
+        )
+
+# Executable
+add_executable(xCalc ${APP_SOURCES})
+
+# Link
+target_link_libraries(xCalc expression_calc)
