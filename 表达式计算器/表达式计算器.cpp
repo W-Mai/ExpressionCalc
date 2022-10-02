@@ -63,7 +63,7 @@ int main() {
 		//while (true) {
 		const auto res = reversePolishNotation(inputExpression, tokenLevel, e);
 		if (e.type != ErrorType::Well) {
-			cout << "[" + ErrorType2Name[e.type] + "]: " + e.msg << endl;//报错信息或许去掉.比较好，考虑到因.引发的错误？
+			cout << "[" + ErrorType2Name[e.type] + "]: " + e.msg + "." << endl;
 			continue;
 		}
 		const auto val = evalNotation(res, e);
@@ -140,16 +140,7 @@ Notation reversePolishNotation(const string& expression, const TokenLevel& token
 				}
 				buffer.push_back(it);
 			}++it;
-		}
-		else {//增加了对于1.1.1此类的错误判断
-			string num = readNumber(it, expression);
-			int cnt = 0;
-			for (auto i = num.begin(); i != num.end(); i++) {
-				if (*i == '.')	cnt++;
-				if (cnt > 1) { e = { ErrorType::SyntaxError, string({'.'}) }; return result; }
-			}
-			result.push_back(num);
-		}
+		} else result.push_back(readNumber(it, expression));
 	}
 
 	while (!buffer.empty()) {
