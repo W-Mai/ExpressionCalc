@@ -30,10 +30,10 @@ struct Error {
 typedef double (*MyFunc_t)(const double* params, const int num);
 typedef std::map<std::string, std::pair<int, MyFunc_t>> NoteTable_t;
 
-#define ERROR(err, type_, msg_) \
+#define ERROR(err, type_, msg_, res_) \
     (err).type = (type_);       \
     (err).msg = (msg_);         \
-    return
+    return res_
 
 #define LAMBDA_EXPR(expr) [](const double* params, const int num) -> double { return expr; }
 

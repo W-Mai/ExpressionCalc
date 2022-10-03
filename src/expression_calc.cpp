@@ -75,15 +75,13 @@ inline bool checkFunc(std::string::const_iterator& it, const std::string& expres
 std::string readFunc(std::string::const_iterator& it, const std::string& expression)
 {
     std::string rtn;
-    while (it != expression.end() && checkFunc(it, expression))
-        rtn += *it++;
+    while (it != expression.end() && checkFunc(it, expression)) rtn += *it++;
     return rtn;
 }
 
 bool eatWhitespace(std::string::const_iterator& it, const std::string& expression)
 {
-    while (it != expression.end() && (isspace(*it) || *it == ','))
-        it++;
+    while (it != expression.end() && (isspace(*it) || *it == ',')) it++;
     return it == expression.end();
 }
 
@@ -117,7 +115,7 @@ Notation_t reversePolishNotation(const std::string& expression, const TokenLevel
                 }
 
                 if (buffer.empty()) {
-                    ERROR(e, ErrorType::BracketNotMatched, std::string({ '(' })) result;
+                    ERROR(e, ErrorType::BracketNotMatched, std::string({ '(' }), result);
                 } else {
                     buffer.pop_back();
                 }
@@ -126,10 +124,10 @@ Notation_t reversePolishNotation(const std::string& expression, const TokenLevel
                 auto search_res_ch = tokenLevel.find(ch);
                 auto search_res_back = tokenLevel.find(*buffer.back());
                 if (search_res_ch == tokenLevel.end()) {
-                    ERROR(e, ErrorType::SyntaxError, std::string({ ch })) result;
+                    ERROR(e, ErrorType::SyntaxError, std::string({ ch }), result);
                 }
                 if (search_res_back == tokenLevel.end()) {
-                    ERROR(e, ErrorType::SyntaxError, std::string({ *buffer.back() })) result;
+                    ERROR(e, ErrorType::SyntaxError, std::string({ *buffer.back() }), result);
                 }
                 if (tokenLevel.at(ch) <= tokenLevel.at(*buffer.back())) {
                     while (!buffer.empty() && tokenLevel.at(ch) <= tokenLevel.at(*buffer.back())) {
@@ -167,12 +165,12 @@ double evalNotation(const Notation_t& notation, Error& e)
             resultStack.push(strtod(note.c_str(), nullptr));
         } else {
             if (note == "(" || note == ")") {
-                ERROR(e, ErrorType::BracketNotMatched, note) INFINITY;
+                ERROR(e, ErrorType::BracketNotMatched, note, INFINITY);
             }
 
             auto nt_it = NoteTable.find(note);
             if (nt_it == NoteTable.end()) {
-                ERROR(e, ErrorType::FunctionNotFound, note) INFINITY;
+                ERROR(e, ErrorType::FunctionNotFound, note, INFINITY);
             }
 
             const auto pCount = nt_it->second.first;
@@ -180,7 +178,7 @@ double evalNotation(const Notation_t& notation, Error& e)
             for (auto i = pCount - 1; i >= 0; i--) {
                 if (resultStack.empty()) {
                     delete[] param;
-                    ERROR(e,ErrorType::SyntaxError, note) INFINITY;
+                    ERROR(e,ErrorType::SyntaxError, note, INFINITY);
                 }
                 param[i] = resultStack.top();
                 resultStack.pop();
@@ -193,7 +191,7 @@ double evalNotation(const Notation_t& notation, Error& e)
     }
 
     if (resultStack.size() > 1) {
-        ERROR(e, ErrorType::EvalError, "Can't Evaluate Correctly") resultStack.top();
+        ERROR(e, ErrorType::EvalError, "Can't Evaluate Correctly", resultStack.top());
     }
 
     return resultStack.top();
