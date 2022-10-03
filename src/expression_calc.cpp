@@ -7,7 +7,7 @@ std::map<ErrorType, std::string> ErrorType2Name = {
     {ErrorType::SyntaxError,"Syntax Error"}
 };
 
-const TokenLevel tokenLevel {
+const TokenLevel_t TokenLevel {
     {'+', 1}, {'-', 1},
     {'*', 2}, {'/', 2}, {'^', 2}, {'%', 2}, {'\\', 2},
     {'(', 0}, {')', 0}
@@ -36,12 +36,20 @@ inline bool checkNumber(std::string::const_iterator& it, const std::string& expr
 
 std::string readNumber(std::string::const_iterator& it, const std::string& expression)
 {
+    int dot_count = 0;
     std::string rtn;
-    while (it != expression.end() && checkNumber(it, expression))
+    while (it != expression.end() && checkNumber(it, expression)) {
+        if (*it == '.')
+            dot_count ++;
+        if (dot_count > 1)
+            break ;
+
         if (*it != '+')
             rtn += *it++;
         else
             ++it;
+    }
+
     return rtn;
 }
 
@@ -58,9 +66,10 @@ std::string readFunc(std::string::const_iterator& it, const std::string& express
     return rtn;
 }
 
-Notation reversePolishNotation(const std::string& expression, const TokenLevel& tokenLevel, Error& e)
+Notation_t reversePolishNotation(const std::string& expression, const TokenLevel_t& tokenLevel, Error& e)
 {
-    Notation result;
+    e = {ErrorType::Well};
+    Notation_t result;
     std::vector<std::string::const_iterator> buffer;
     std::stack<std::pair<std::string, std::string::const_iterator>> tmpFunc;
     for (auto it = expression.begin(); it != expression.end();) {
@@ -73,7 +82,7 @@ Notation reversePolishNotation(const std::string& expression, const TokenLevel& 
             if (ch == '(' || buffer.empty()) {
                 buffer.push_back(it);
             } else if (ch == ')') {
-                while (*buffer.back() != '(') {
+                while (!buffer.empty() && *buffer.back() != '(') {
                     result.push_back(std::string { *buffer.back() });
                     buffer.pop_back();
                 }
@@ -82,7 +91,14 @@ Notation reversePolishNotation(const std::string& expression, const TokenLevel& 
                     result.push_back(tmpFunc.top().first);
                     tmpFunc.pop();
                 }
-                buffer.pop_back();
+
+                if (buffer.empty()) {
+                    e = { ErrorType::BracketNotMatched, std::string({ '(' }) };
+                    return result;
+                } else {
+                    buffer.pop_back();
+                }
+
             } else {
                 auto search_res_ch = tokenLevel.find(ch);
                 auto search_res_back = tokenLevel.find(*buffer.back());
@@ -103,17 +119,8 @@ Notation reversePolishNotation(const std::string& expression, const TokenLevel& 
                 buffer.push_back(it);
             }
             ++it;
-        } else { // 增加了对于1.1.1此类的错误判断
+        } else {
             std::string num = readNumber(it, expression);
-            int cnt = 0;
-            for (auto i = num.begin(); i != num.end(); i++) {
-                if (*i == '.')
-                    cnt++;
-                if (cnt > 1) {
-                    e = { ErrorType::SyntaxError, std::string({ '.' }) };
-                    return result;
-                }
-            }
             result.push_back(num);
         }
     }
@@ -125,8 +132,9 @@ Notation reversePolishNotation(const std::string& expression, const TokenLevel& 
     return result;
 }
 
-double evalNotation(const Notation& notation, Error& e)
+double evalNotation(const Notation_t& notation, Error& e)
 {
+    e = {ErrorType::Well};
     if (notation.empty())
         return INFINITY;
     std::stack<double> resultStack;
