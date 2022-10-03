@@ -6,4 +6,4 @@ set(CMAKE_CXX_STANDARD 14)
 set(sources expression_calc.cpp)
 
 add_library(expression_calc STATIC ${sources})
-target_include_directories(expression_calc PUBLIC ..)
+target_include_directories(expression_calc PUBLIC .)
