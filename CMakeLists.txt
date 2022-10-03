@@ -3,6 +3,8 @@ project(ExpressionCalc)
 
 set(CMAKE_CXX_STANDARD 11)
 
+set(DISABLE_ASAN true) # comment this line to enable ASAN(Address Sanitizer)
+
 # Address Sanitizer
 if (NOT DISABLE_ASAN)
     set(ASAN_FLAGS "-fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer")
