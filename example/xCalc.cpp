@@ -12,9 +12,15 @@ using namespace std;
 int main()
 {
     Error e;
+    char expr[1024] {0};
     string inputExpression;
-    while (cin >> inputExpression) {
-        // inputExpression = "1+2+3+(5/6-3)";
+
+    while (cin.getline(expr, sizeof expr)) {
+        inputExpression = expr;
+
+        if (inputExpression == "exit")
+            break ;
+
         const auto res = reversePolishNotation(inputExpression, TokenLevel, e);
         if (e.type != ErrorType::Well) {
             cout << "[" + ErrorType2Name[e.type] + "]: " + e.msg << endl;

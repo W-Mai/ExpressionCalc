@@ -66,6 +66,10 @@ std::string readFunc(std::string::const_iterator& it, const std::string& express
     return rtn;
 }
 
+void eatWhitespace(std::string::const_iterator& it, const std::string& expression) {
+    while (it != expression.end() && *it == ' ') it++;
+}
+
 Notation_t reversePolishNotation(const std::string& expression, const TokenLevel_t& tokenLevel, Error& e)
 {
     e.type = ErrorType::Well;
@@ -73,6 +77,9 @@ Notation_t reversePolishNotation(const std::string& expression, const TokenLevel
     std::vector<std::string::const_iterator> buffer;
     std::stack<std::pair<std::string, std::string::const_iterator>> tmpFunc;
     for (auto it = expression.begin(); it != expression.end();) {
+        eatWhitespace(it, expression);
+        if (*it == '\0')
+            break ;
         auto ch = *it;
         if (!checkNumber(it, expression)) {
             if (checkFunc(it, expression)) {
