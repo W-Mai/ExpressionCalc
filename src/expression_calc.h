@@ -27,6 +27,8 @@ struct Error {
     std::string msg;
 };
 
+#define ERROR(err, type_, msg_) (err).type=(type_); (err).msg=(msg_); return
+
 extern std::map<ErrorType, std::string> ErrorType2Name;
 extern const TokenLevel_t TokenLevel;
 extern const std::map<std::string, int> NoteTable;

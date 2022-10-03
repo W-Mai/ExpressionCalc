@@ -68,7 +68,7 @@ std::string readFunc(std::string::const_iterator& it, const std::string& express
 
 Notation_t reversePolishNotation(const std::string& expression, const TokenLevel_t& tokenLevel, Error& e)
 {
-    e = {ErrorType::Well};
+    e.type = ErrorType::Well;
     Notation_t result;
     std::vector<std::string::const_iterator> buffer;
     std::stack<std::pair<std::string, std::string::const_iterator>> tmpFunc;
@@ -93,8 +93,7 @@ Notation_t reversePolishNotation(const std::string& expression, const TokenLevel
                 }
 
                 if (buffer.empty()) {
-                    e = { ErrorType::BracketNotMatched, std::string({ '(' }) };
-                    return result;
+                    ERROR(e, ErrorType::BracketNotMatched, std::string({ '(' })) result;
                 } else {
                     buffer.pop_back();
                 }
@@ -103,12 +102,10 @@ Notation_t reversePolishNotation(const std::string& expression, const TokenLevel
                 auto search_res_ch = tokenLevel.find(ch);
                 auto search_res_back = tokenLevel.find(*buffer.back());
                 if (search_res_ch == tokenLevel.end()) {
-                    e = { ErrorType::SyntaxError, std::string({ ch }) };
-                    return result;
+                    ERROR(e, ErrorType::SyntaxError, std::string({ ch })) result;
                 }
                 if (search_res_back == tokenLevel.end()) {
-                    e = { ErrorType::SyntaxError, std::string({ *buffer.back() }) };
-                    return result;
+                    ERROR(e, ErrorType::SyntaxError, std::string({ *buffer.back() })) result;
                 }
                 if (tokenLevel.at(ch) <= tokenLevel.at(*buffer.back())) {
                     while (!buffer.empty() && tokenLevel.at(ch) <= tokenLevel.at(*buffer.back())) {
@@ -134,7 +131,7 @@ Notation_t reversePolishNotation(const std::string& expression, const TokenLevel
 
 double evalNotation(const Notation_t& notation, Error& e)
 {
-    e = {ErrorType::Well};
+    e.type = ErrorType::Well;
     if (notation.empty())
         return INFINITY;
     std::stack<double> resultStack;
@@ -145,22 +142,19 @@ double evalNotation(const Notation_t& notation, Error& e)
             resultStack.push(strtod(note.c_str(), nullptr));
         } else {
             if (note == "(" || note == ")") {
-                e = { ErrorType::BracketNotMatched, note };
-                return INFINITY;
+                ERROR(e, ErrorType::BracketNotMatched, note) INFINITY;
             }
 
             auto nt_it = NoteTable.find(note);
             if (nt_it == NoteTable.end()) {
-                e = { ErrorType::FunctionNotFound, note };
-                return INFINITY;
+                ERROR(e, ErrorType::FunctionNotFound, note) INFINITY;
             }
             const auto pCount = nt_it->second;
 
             const auto param = new double[pCount];
             for (auto i = pCount - 1; i >= 0; i--) {
                 if (resultStack.empty()) {
-                    e = { ErrorType::SyntaxError, note };
-                    return INFINITY;
+                    ERROR(e,ErrorType::SyntaxError, note) INFINITY;
                 }
                 param[i] = resultStack.top();
                 resultStack.pop();
@@ -219,7 +213,7 @@ double evalNotation(const Notation_t& notation, Error& e)
     }
 
     if (resultStack.size() > 1) {
-        e = { ErrorType::EvalError, "Can't Evaluate Correctly" };
+        ERROR(e, ErrorType::EvalError, "Can't Evaluate Correctly") resultStack.top();
     }
     return resultStack.top();
 }
