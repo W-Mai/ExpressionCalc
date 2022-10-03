@@ -9,10 +9,9 @@
 
 using namespace std;
 
-int main()
-{
-    Error e;
-    char expr[1024] { 0 };
+int main() {
+    Error  e;
+    char   expr[1024] { 0 };
     string inputExpression;
 
     NoteTable["hello"] = {
@@ -31,7 +30,7 @@ int main()
             if (target == 1) return a;
             if (target == 2) return b;
 
-            while (target --> 3){
+            while (target-- > 3) {
                 a = b;
                 b = c;
                 c = a + b;
@@ -43,8 +42,7 @@ int main()
     while (cin.getline(expr, sizeof expr)) {
         inputExpression = expr;
 
-        if (inputExpression == "exit")
-            break;
+        if (inputExpression == "exit") break;
 
         const auto res = reversePolishNotation(inputExpression, TokenLevel, e);
         if (e.type != ErrorType::Well) {
@@ -53,9 +51,9 @@ int main()
         }
         const auto val = evalNotation(res, e);
 
-        if (e.type != ErrorType::Well) {
+        if (e.type != ErrorType::Well)
             cout << "[" + ErrorType2Name[e.type] + "]: " + e.msg + "." << endl;
-        } else
+        else
             cout << "Result: " << fixed << setprecision(6) << val << endl;
     }
 }
