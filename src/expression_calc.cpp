@@ -16,6 +16,8 @@ const TokenLevel_t TokenLevel {
 const std::map<std::string, int> NoteTable {
     {"+",2}, {"-",2},
     {"*",2}, {"/",2}, {"^", 2}, {"%", 2}, {"\\", 2},
+    {"add",2}, {"sub",2},
+    {"mul",2}, {"div",2}, {"pow", 2}, {"mod", 2}, {"divi", 2},
     {"sqrt",1}, {"abs",1},
     {"sin",1}, {"cos", 1}, {"tan", 1},
     {"asin",1}, {"acos", 1}, {"atan", 1},
@@ -66,8 +68,9 @@ std::string readFunc(std::string::const_iterator& it, const std::string& express
     return rtn;
 }
 
-void eatWhitespace(std::string::const_iterator& it, const std::string& expression) {
-    while (it != expression.end() && *it == ' ') it++;
+bool eatWhitespace(std::string::const_iterator& it, const std::string& expression) {
+    while (it != expression.end() && (isspace(*it) || *it == ',')) it++;
+    return it == expression.end();
 }
 
 Notation_t reversePolishNotation(const std::string& expression, const TokenLevel_t& tokenLevel, Error& e)
@@ -77,9 +80,9 @@ Notation_t reversePolishNotation(const std::string& expression, const TokenLevel
     std::vector<std::string::const_iterator> buffer;
     std::stack<std::pair<std::string, std::string::const_iterator>> tmpFunc;
     for (auto it = expression.begin(); it != expression.end();) {
-        eatWhitespace(it, expression);
-        if (*it == '\0')
+        if(eatWhitespace(it, expression))
             break ;
+
         auto ch = *it;
         if (!checkNumber(it, expression)) {
             if (checkFunc(it, expression)) {
@@ -202,18 +205,20 @@ double evalNotation(const Notation_t& notation, Error& e)
             else if (note == "sign")
                 resultStack.push(abs(param[0]) < 1e-10 ? 0 : param[0] > 0 ? 1
                                                                           : -1);
-            else if (note == "+")
+            else if (note == "+" || note == "add")
                 resultStack.push(param[0] + param[1]);
-            else if (note == "-")
+            else if (note == "-" || note == "sub")
                 resultStack.push(param[0] - param[1]);
-            else if (note == "*")
+            else if (note == "*" || note == "mul")
                 resultStack.push(param[0] * param[1]);
-            else if (note == "/")
+            else if (note == "/" || note == "div")
                 resultStack.push(param[0] / param[1]);
-            else if (note == "^")
+            else if (note == "^" || note == "pow")
                 resultStack.push(pow(param[0], param[1]));
-            else if (note == "%")
+            else if (note == "%" || note == "mod")
                 resultStack.push(fmod(param[0], param[1]));
+            else if (note == "\\" || note == "divi")
+                resultStack.push((int)((int)param[0] / (int) param[1]));
 
             delete[] param;
         }
