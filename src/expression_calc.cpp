@@ -1,31 +1,49 @@
 ﻿#include "expression_calc.h"
 
 std::map<ErrorType, std::string> ErrorType2Name = {
-    {ErrorType::BracketNotMatched, "Bracket Not Matched"},
-    {ErrorType::FunctionNotFound, "Function Not Found"},
-    {ErrorType::EvalError,"Evaluate Error"},
-    {ErrorType::SyntaxError,"Syntax Error"}
+    { ErrorType::BracketNotMatched, "Bracket Not Matched" },
+    { ErrorType::FunctionNotFound, "Function Not Found" },
+    { ErrorType::EvalError, "Evaluate Error" },
+    { ErrorType::SyntaxError, "Syntax Error" }
 };
 
-const TokenLevel_t TokenLevel {
-    {'+', 1}, {'-', 1},
-    {'*', 2}, {'/', 2}, {'^', 2}, {'%', 2}, {'\\', 2},
-    {'(', 0}, {')', 0}
+TokenLevel_t __attribute__((weak)) TokenLevel {
+    { '+', 1 }, { '-', 1 },
+    { '*', 2 }, { '/', 2 }, { '^', 2 }, { '%', 2 }, { '\\', 2 },
+    { '(', 0 }, { ')', 0 }
 };
 
-const std::map<std::string, int> NoteTable {
-    {"+",2}, {"-",2},
-    {"*",2}, {"/",2}, {"^", 2}, {"%", 2}, {"\\", 2},
-    {"add",2}, {"sub",2},
-    {"mul",2}, {"div",2}, {"pow", 2}, {"mod", 2}, {"divi", 2},
-    {"sqrt",1}, {"abs",1},
-    {"sin",1}, {"cos", 1}, {"tan", 1},
-    {"asin",1}, {"acos", 1}, {"atan", 1},
-    {"ln",1}, {"log", 1}, {"log2", 1},
-    {"floor", 1}, {"ceil", 1},
-    {"sign", 1},
-    {"PI", 0},
-    {"E", 0},
+NoteTable_t __attribute__((weak)) NoteTable {
+    { "+", { 2, LAMBDA_EXPR(params[0] + params[1]) } },
+    { "-", { 2, LAMBDA_EXPR(params[0] - params[1]) } },
+    { "*", { 2, LAMBDA_EXPR(params[0] * params[1]) } },
+    { "/", { 2, LAMBDA_EXPR(params[0] / params[1]) } },
+    { "^", { 2, LAMBDA_EXPR(powf(params[0], params[1])) } },
+    { "%", { 2, LAMBDA_EXPR(fmod(params[0], params[1])) } },
+    { "\\", { 2, LAMBDA_EXPR((int)((int)params[0] / (int)params[1])) } },
+    { "add", { 2, LAMBDA_EXPR(params[0] + params[1]) } },
+    { "sub", { 2, LAMBDA_EXPR(params[0] - params[1]) } },
+    { "mul", { 2, LAMBDA_EXPR(params[0] * params[1]) } },
+    { "div", { 2, LAMBDA_EXPR(params[0] / params[1]) } },
+    { "pow", { 2, LAMBDA_EXPR(powf(params[0], params[1])) } },
+    { "mod", { 2, LAMBDA_EXPR(fmod(params[0], params[1])) } },
+    { "divi", { 2, LAMBDA_EXPR((int)((int)params[0] / (int)params[1])) } },
+    { "sqrt", { 1, LAMBDA_EXPR(sqrt(params[0])) } },
+    { "abs", { 1, LAMBDA_EXPR(fabs(params[0])) } },
+    { "sin", { 1, LAMBDA_EXPR(sin(params[0])) } },
+    { "cos", { 1, LAMBDA_EXPR(cos(params[0])) } },
+    { "tan", { 1, LAMBDA_EXPR(tan(params[0])) } },
+    { "asin", { 1, LAMBDA_EXPR(asin(params[0])) } },
+    { "acos", { 1, LAMBDA_EXPR(acos((params[0]))) } },
+    { "atan", { 1, LAMBDA_EXPR(atan(params[0])) } },
+    { "ln", { 1, LAMBDA_EXPR(log(params[0])) } },
+    { "log", { 1, LAMBDA_EXPR(log10(params[0])) } },
+    { "log2", { 1, LAMBDA_EXPR(log2(params[0])) } },
+    { "floor", { 1, LAMBDA_EXPR(floor(params[0])) } },
+    { "ceil", { 1, LAMBDA_EXPR(ceil(params[0])) } },
+    { "sign", { 1, LAMBDA_EXPR(abs(params[0]) < 1e-10 ? 0 : params[0] > 0 ? 1 : -1) } },
+    { "PI", { 0, LAMBDA_EXPR(M_PI) } },
+    { "E", { 0, LAMBDA_EXPR(M_E) } },
 };
 
 inline bool checkNumber(std::string::const_iterator& it, const std::string& expression)
@@ -41,17 +59,11 @@ std::string readNumber(std::string::const_iterator& it, const std::string& expre
     int dot_count = 0;
     std::string rtn;
     while (it != expression.end() && checkNumber(it, expression)) {
-        if (*it == '.')
-            dot_count ++;
-        if (dot_count > 1)
-            break ;
-
-        if (*it != '+')
-            rtn += *it++;
-        else
-            ++it;
+        if (*it == '.') dot_count++;
+        if (dot_count > 1) break;
+        if (*it != '+') rtn += *it++;
+        else ++it;
     }
-
     return rtn;
 }
 
@@ -68,8 +80,10 @@ std::string readFunc(std::string::const_iterator& it, const std::string& express
     return rtn;
 }
 
-bool eatWhitespace(std::string::const_iterator& it, const std::string& expression) {
-    while (it != expression.end() && (isspace(*it) || *it == ',')) it++;
+bool eatWhitespace(std::string::const_iterator& it, const std::string& expression)
+{
+    while (it != expression.end() && (isspace(*it) || *it == ','))
+        it++;
     return it == expression.end();
 }
 
@@ -80,8 +94,8 @@ Notation_t reversePolishNotation(const std::string& expression, const TokenLevel
     std::vector<std::string::const_iterator> buffer;
     std::stack<std::pair<std::string, std::string::const_iterator>> tmpFunc;
     for (auto it = expression.begin(); it != expression.end();) {
-        if(eatWhitespace(it, expression))
-            break ;
+        if (eatWhitespace(it, expression))
+            break;
 
         auto ch = *it;
         if (!checkNumber(it, expression)) {
@@ -144,8 +158,10 @@ double evalNotation(const Notation_t& notation, Error& e)
     e.type = ErrorType::Well;
     if (notation.empty())
         return INFINITY;
+
     std::stack<double> resultStack;
-    for (const auto& note : notation) {
+
+    for (auto& note : notation) {
         auto it = note.begin();
         if (checkNumber(it, note)) {
             resultStack.push(strtod(note.c_str(), nullptr));
@@ -158,8 +174,8 @@ double evalNotation(const Notation_t& notation, Error& e)
             if (nt_it == NoteTable.end()) {
                 ERROR(e, ErrorType::FunctionNotFound, note) INFINITY;
             }
-            const auto pCount = nt_it->second;
 
+            const auto pCount = nt_it->second.first;
             const auto param = new double[pCount];
             for (auto i = pCount - 1; i >= 0; i--) {
                 if (resultStack.empty()) {
@@ -170,55 +186,7 @@ double evalNotation(const Notation_t& notation, Error& e)
                 resultStack.pop();
             }
 
-            if (note == "hello")
-                resultStack.push(0);
-            else if (note == "PI")
-                resultStack.push(M_PI);
-            else if (note == "E")
-                resultStack.push(M_E);
-            else if (note == "abs")
-                resultStack.push(abs(param[0]));
-            else if (note == "sqrt")
-                resultStack.push(sqrt(param[0]));
-            else if (note == "sin")
-                resultStack.push(sin(param[0]));
-            else if (note == "cos")
-                resultStack.push(cos(param[0]));
-            else if (note == "tan")
-                resultStack.push(tan(param[0]));
-            else if (note == "asin")
-                resultStack.push(asin(param[0]));
-            else if (note == "acos")
-                resultStack.push(acos(param[0]));
-            else if (note == "atan")
-                resultStack.push(atan(param[0]));
-            else if (note == "ln")
-                resultStack.push(log(param[0]));
-            else if (note == "log")
-                resultStack.push(log10(param[0]));
-            else if (note == "log2")
-                resultStack.push(log2(param[0]));
-            else if (note == "floor")
-                resultStack.push(floor(param[0]));
-            else if (note == "ceil")
-                resultStack.push(ceil(param[0]));
-            else if (note == "sign")
-                resultStack.push(abs(param[0]) < 1e-10 ? 0 : param[0] > 0 ? 1
-                                                                          : -1);
-            else if (note == "+" || note == "add")
-                resultStack.push(param[0] + param[1]);
-            else if (note == "-" || note == "sub")
-                resultStack.push(param[0] - param[1]);
-            else if (note == "*" || note == "mul")
-                resultStack.push(param[0] * param[1]);
-            else if (note == "/" || note == "div")
-                resultStack.push(param[0] / param[1]);
-            else if (note == "^" || note == "pow")
-                resultStack.push(pow(param[0], param[1]));
-            else if (note == "%" || note == "mod")
-                resultStack.push(fmod(param[0], param[1]));
-            else if (note == "\\" || note == "divi")
-                resultStack.push((int)((int)param[0] / (int) param[1]));
+            resultStack.push(nt_it->second.second(param, pCount));
 
             delete[] param;
         }
@@ -227,5 +195,6 @@ double evalNotation(const Notation_t& notation, Error& e)
     if (resultStack.size() > 1) {
         ERROR(e, ErrorType::EvalError, "Can't Evaluate Correctly") resultStack.top();
     }
+
     return resultStack.top();
 }

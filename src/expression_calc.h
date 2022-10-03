@@ -5,8 +5,8 @@
 #ifndef EXPRESSIONCALC_EXPRESSION_CALC_H
 #define EXPRESSIONCALC_EXPRESSION_CALC_H
 
-#include <iostream>
 #include <cmath>
+#include <iostream>
 #include <map>
 #include <stack>
 #include <vector>
@@ -27,11 +27,19 @@ struct Error {
     std::string msg;
 };
 
-#define ERROR(err, type_, msg_) (err).type=(type_); (err).msg=(msg_); return
+typedef double (*MyFunc_t)(const double* params, const int num);
+typedef std::map<std::string, std::pair<int, MyFunc_t>> NoteTable_t;
+
+#define ERROR(err, type_, msg_) \
+    (err).type = (type_);       \
+    (err).msg = (msg_);         \
+    return
+
+#define LAMBDA_EXPR(expr) [](const double* params, const int num) -> double { return expr; }
 
 extern std::map<ErrorType, std::string> ErrorType2Name;
-extern const TokenLevel_t TokenLevel;
-extern const std::map<std::string, int> NoteTable;
+extern TokenLevel_t TokenLevel;
+extern NoteTable_t NoteTable;
 
 Notation_t reversePolishNotation(const std::string& expression, const TokenLevel_t& tokenLevel, Error& e);
 

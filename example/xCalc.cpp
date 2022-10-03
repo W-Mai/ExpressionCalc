@@ -12,14 +12,39 @@ using namespace std;
 int main()
 {
     Error e;
-    char expr[1024] {0};
+    char expr[1024] { 0 };
     string inputExpression;
+
+    NoteTable["hello"] = {
+        0, [](const double*, const int) -> double {
+            cout << "Hello World" << endl;
+            return 0;
+        }
+    };
+
+    NoteTable["fib"] = {
+        3, [](const double* p, const int) -> double {
+            double target = p[2];
+            double a = p[0], b = p[1], c = a + b;
+
+            if (target <= 0) return INFINITY;
+            if (target == 1) return a;
+            if (target == 2) return b;
+
+            while (target --> 3){
+                a = b;
+                b = c;
+                c = a + b;
+            }
+            return c;
+        }
+    };
 
     while (cin.getline(expr, sizeof expr)) {
         inputExpression = expr;
 
         if (inputExpression == "exit")
-            break ;
+            break;
 
         const auto res = reversePolishNotation(inputExpression, TokenLevel, e);
         if (e.type != ErrorType::Well) {
