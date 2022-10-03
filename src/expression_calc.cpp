@@ -146,7 +146,6 @@ double evalNotation(const Notation_t& notation, Error& e)
         return INFINITY;
     std::stack<double> resultStack;
     for (const auto& note : notation) {
-        // cout << note << " ";
         auto it = note.begin();
         if (checkNumber(it, note)) {
             resultStack.push(strtod(note.c_str(), nullptr));
@@ -164,6 +163,7 @@ double evalNotation(const Notation_t& notation, Error& e)
             const auto param = new double[pCount];
             for (auto i = pCount - 1; i >= 0; i--) {
                 if (resultStack.empty()) {
+                    delete[] param;
                     ERROR(e,ErrorType::SyntaxError, note) INFINITY;
                 }
                 param[i] = resultStack.top();
