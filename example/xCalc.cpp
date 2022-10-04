@@ -41,7 +41,7 @@ int main() {
 
     NoteTable["if"] = { 3, LAMBDA_EXPR(params[0] ? params[1] : params[2]) };
 
-    while (cin.getline(expr, sizeof expr)) {
+    while (cin.getline(expr, sizeof expr, ';')) {
         inputExpression = expr;
 
         if (inputExpression == "exit") break;
