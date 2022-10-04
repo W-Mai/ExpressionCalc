@@ -70,6 +70,8 @@ public:
     double     evalNotation(const Notation_t& notation);
 
     void setExpression(Expression_t expression);
+    const Error_t& getError();
+    std::string errorToString();
 };
 }
 

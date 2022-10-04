@@ -1,4 +1,7 @@
-﻿#include "expression_calc.h"
+﻿#pragma clang diagnostic push
+#pragma ide diagnostic   ignored "readability-convert-member-functions-to-static"
+
+#include "expression_calc.h"
 
 #include <utility>
 
@@ -6,10 +9,11 @@ namespace XCLZ {
 
 eXpressionCalc::eXpressionCalc() {
     ErrorType2Name = {
-        {ErrorType::BracketNotMatched, "Bracket Not Matched"},
-        { ErrorType::FunctionNotFound, "Function Not Found" },
-        { ErrorType::EvalError,        "Evaluate Error"     },
-        { ErrorType::SyntaxError,      "Syntax Error"       }
+        {ErrorType::Well,               "Well Done"          },
+        { ErrorType::BracketNotMatched, "Bracket Not Matched"},
+        { ErrorType::FunctionNotFound,  "Function Not Found" },
+        { ErrorType::EvalError,         "Evaluate Error"     },
+        { ErrorType::SyntaxError,       "Syntax Error"       }
     };
 
     TokenLevel = {
@@ -221,4 +225,14 @@ ERROR_BUT_RETURN_INFINITY_TAG:
 void eXpressionCalc::setExpression(Expression_t expression) {
     Expr = std::move(expression);
 }
+
+const Error_t& eXpressionCalc::getError() {
+    return Error;
 }
+
+std::string eXpressionCalc::errorToString() {
+    return ErrorType2Name[getError().type];
+}
+}
+
+#pragma clang diagnostic pop

@@ -21,8 +21,16 @@ int main() {
 
         calc.setExpression(inputExpression);
         const auto res = calc.reversePolishNotation();
-        const auto val = calc.evalNotation(res);
+        if (calc.getError().type != XCLZ::ErrorType::Well) {
+            cout << "[" + calc.errorToString() + "]: " + calc.getError().msg << endl;
+            continue;
+        }
 
-        cout << "Result: " << fixed << setprecision(6) << val << endl;
+        const auto val = calc.evalNotation(res);
+        if (calc.getError().type != XCLZ::ErrorType::Well) {
+            cout << "[" + calc.errorToString() + "]: " + calc.getError().msg + "." << endl;
+        } else {
+            cout << "Result: " << fixed << setprecision(6) << val << endl;
+        }
     }
 }
