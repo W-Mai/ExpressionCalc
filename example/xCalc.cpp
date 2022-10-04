@@ -10,8 +10,8 @@
 using namespace std;
 
 int main() {
-    char   expr[1024] { 0 };
-    string inputExpression;
+    char                 expr[1024] { 0 };
+    string               inputExpression;
     XCLZ::eXpressionCalc calc;
 
     while (cin.getline(expr, sizeof expr, ';')) {
@@ -19,7 +19,8 @@ int main() {
 
         if (inputExpression == "exit") break;
 
-        const auto res = calc.reversePolishNotation(inputExpression);
+        calc.setExpression(inputExpression);
+        const auto res = calc.reversePolishNotation();
         const auto val = calc.evalNotation(res);
 
         cout << "Result: " << fixed << setprecision(6) << val << endl;

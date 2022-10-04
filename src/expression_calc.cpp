@@ -1,5 +1,7 @@
 ﻿#include "expression_calc.h"
 
+#include <utility>
+
 namespace XCLZ {
 
 eXpressionCalc::eXpressionCalc() {
@@ -62,57 +64,63 @@ void eXpressionCalc::resetError() {
     Error.msg  = "";
 }
 
-inline bool eXpressionCalc::checkNumber(ExpressionIt_t it, Expression_t expression) {
-    return isdigit(*it)
-        || ((it == expression.begin() || *(it - 1) == '(')
-            && ((*it == '-' || *it == '+') && (it + 1) != expression.end()))
-        || *it == '.' && (it + 1) != expression.end() && isdigit(*(it + 1));
+inline bool eXpressionCalc::checkNumber() {
+    return isdigit(*ExprIt)
+        || ((ExprIt == Expr.begin() || *(ExprIt - 1) == '(')
+            && ((*ExprIt == '-' || *ExprIt == '+') && (ExprIt + 1) != Expr.end()))
+        || *ExprIt == '.' && (ExprIt + 1) != Expr.end() && isdigit(*(ExprIt + 1));
 }
 
-std::string eXpressionCalc::readNumber(ExpressionIt_t it, Expression_t expression) {
+std::string eXpressionCalc::readNumber() {
     int         dot_count = 0;
     std::string rtn;
-    while (it != expression.end() && checkNumber(it, expression)) {
-        if (*it == '.') dot_count++;
+    while (ExprIt != Expr.end() && checkNumber()) {
+        if (*ExprIt == '.') dot_count++;
         if (dot_count > 1) break;
-        if (*it != '+') rtn += *it++;
-        else ++it;
+        if (*ExprIt != '+') rtn += *ExprIt++;
+        else ++ExprIt;
     }
     return rtn;
 }
 
-inline bool eXpressionCalc::checkFunc(ExpressionIt_t it, Expression_t expression) {
-    return isalnum(*it);
+inline bool eXpressionCalc::checkFunc() {
+    return isalnum(*ExprIt);
 }
 
-std::string eXpressionCalc::readFunc(ExpressionIt_t it, Expression_t expression) {
+std::string eXpressionCalc::readFunc() {
     std::string rtn;
-    while (it != expression.end() && checkFunc(it, expression)) rtn += *it++;
+    while (ExprIt != Expr.end() && checkFunc()) rtn += *ExprIt++;
     return rtn;
 }
 
-bool eXpressionCalc::eatWhitespace(ExpressionIt_t it, Expression_t expression) {
-    while (it != expression.end() && (isspace(*it) || *it == ',')) it++;
-    return it == expression.end();
+bool eXpressionCalc::eatWhitespace() {
+    while (ExprIt != Expr.end() && (isspace(*ExprIt) || *ExprIt == ',')) ExprIt++;
+    return ExprIt == Expr.end();
 }
 
-Notation_t eXpressionCalc::reversePolishNotation(Expression_t expression) {
+bool eXpressionCalc::isNumber(const Expression_t& expr) {
+    return std::all_of(expr.begin(), expr.end(), [](char ch) -> bool {
+        return isdigit(ch) || ch == '.';
+    });
+}
+
+Notation_t eXpressionCalc::reversePolishNotation() {
     resetError();
     Notation_t                                                      result;
     std::vector<std::string::const_iterator>                        buffer;
     std::stack<std::pair<std::string, std::string::const_iterator>> tmpFunc;
-    for (auto it = expression.begin(); it != expression.end();) {
-        if (eatWhitespace(it, expression))
+    for (ExprIt = Expr.begin(); ExprIt != Expr.end();) {
+        if (eatWhitespace())
             break;
 
-        auto ch = *it;
-        if (!checkNumber(it, expression)) {
-            if (checkFunc(it, expression)) {
-                tmpFunc.push({ readFunc(it, expression), it });
+        auto ch = *ExprIt;
+        if (!checkNumber()) {
+            if (checkFunc()) {
+                tmpFunc.push({ readFunc(), ExprIt });
                 continue;
             }
             if (ch == '(' || buffer.empty()) {
-                buffer.push_back(it);
+                buffer.push_back(ExprIt);
             } else if (ch == ')') {
                 while (!buffer.empty() && *buffer.back() != '(') {
                     result.push_back(std::string { *buffer.back() });
@@ -145,11 +153,11 @@ Notation_t eXpressionCalc::reversePolishNotation(Expression_t expression) {
                         buffer.pop_back();
                     }
                 }
-                buffer.push_back(it);
+                buffer.push_back(ExprIt);
             }
-            ++it;
+            ++ExprIt;
         } else {
-            std::string num = readNumber(it, expression);
+            std::string num = readNumber();
             result.push_back(num);
         }
     }
@@ -171,8 +179,7 @@ double eXpressionCalc::evalNotation(const Notation_t& notation) {
     std::stack<double> resultStack;
 
     for (auto& note : notation) {
-        auto it = note.begin();
-        if (checkNumber(it, note)) {
+        if (isNumber(note)) {
             resultStack.push(strtod(note.c_str(), nullptr));
         } else {
             if (note == "(" || note == ")") {
@@ -209,5 +216,9 @@ ERROR_BUT_RETURN_RESULT_TAG:
     return resultStack.top();
 ERROR_BUT_RETURN_INFINITY_TAG:
     return INFINITY;
+}
+
+void eXpressionCalc::setExpression(Expression_t expression) {
+    Expr = std::move(expression);
 }
 }

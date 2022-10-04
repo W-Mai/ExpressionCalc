@@ -31,8 +31,8 @@ typedef struct Error {
 
 typedef std::map<char, int>              TokenLevel_t;
 typedef std::vector<std::string>         Notation_t;
-typedef const std::string&               Expression_t;
-typedef std::string::const_iterator&     ExpressionIt_t;
+typedef std::string                      Expression_t;
+typedef std::string::const_iterator      ExpressionIt_t;
 typedef std::map<ErrorType, std::string> ErrorType2Name_t;
 
 typedef double (*MyFunc_t)(const double* params, const int num);
@@ -43,6 +43,7 @@ typedef std::map<std::string, std::pair<int, MyFunc_t>> NoteTable_t;
     Error.msg  = (msg_);         \
     goto tag_
 
+// Class Declaration
 class eXpressionCalc {
 
 private:
@@ -51,18 +52,24 @@ private:
     NoteTable_t      NoteTable;
     Error_t          Error;
 
+    Expression_t   Expr;
+    ExpressionIt_t ExprIt;
+
     void resetError();
 
-    inline bool        checkNumber(ExpressionIt_t it, Expression_t expression);
-    std::string        readNumber(ExpressionIt_t it, Expression_t expression);
-    static inline bool checkFunc(ExpressionIt_t it, Expression_t expression);
-    std::string        readFunc(ExpressionIt_t it, Expression_t expression);
-    bool               eatWhitespace(ExpressionIt_t it, Expression_t expression);
+    bool        eatWhitespace();
+    bool        checkNumber();
+    std::string readNumber();
+    bool        checkFunc();
+    std::string readFunc();
+    bool        isNumber(const Expression_t& expr);
 
 public:
     eXpressionCalc();
-    Notation_t reversePolishNotation(Expression_t expression);
+    Notation_t reversePolishNotation();
     double     evalNotation(const Notation_t& notation);
+
+    void setExpression(Expression_t expression);
 };
 }
 
