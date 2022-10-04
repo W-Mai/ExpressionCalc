@@ -9,45 +9,61 @@
 #include <iostream>
 #include <map>
 #include <stack>
+#include <string>
 #include <vector>
-
-typedef std::map<char, int>      TokenLevel_t;
-typedef std::vector<std::string> Notation_t;
-
-enum class ErrorType {
-    Well,
-    FunctionNotFound,
-    EvalError,
-    SyntaxError,
-    BracketNotMatched
-};
-
-struct Error {
-    ErrorType   type = ErrorType::Well;
-    std::string msg;
-};
-
-typedef double (*MyFunc_t)(const double* params, const int num);
-typedef std::map<std::string, std::pair<int, MyFunc_t>> NoteTable_t;
-
-#define ERROR(err, type_, msg_, res_) \
-    (err).type = (type_);             \
-    (err).msg  = (msg_);              \
-    return res_
 
 #define LAMBDA_EXPR(expr) [](const double* params, const int num) -> double { return expr; }
 
-extern std::map<ErrorType, std::string> ErrorType2Name;
-extern TokenLevel_t                     TokenLevel;
-extern NoteTable_t                      NoteTable;
+namespace XCLZ {
 
-Notation_t reversePolishNotation(const std::string& expression, const TokenLevel_t& tokenLevel, Error& e);
+    enum class ErrorType {
+        Well,
+        FunctionNotFound,
+        EvalError,
+        SyntaxError,
+        BracketNotMatched
+    };
 
-inline bool checkNumber(std::string::const_iterator& it, const std::string& expression);
-std::string readNumber(std::string::const_iterator& it, const std::string& expression);
-inline bool checkFunc(std::string::const_iterator& it, const std::string& expression);
-std::string readFunc(std::string::const_iterator& it, const std::string& expression);
+    typedef struct Error {
+        ErrorType   type = ErrorType::Well;
+        std::string msg;
+    } Error_t;
 
-double evalNotation(const Notation_t& notation, Error& e);
+    typedef std::map<char, int>              TokenLevel_t;
+    typedef std::vector<std::string>         Notation_t;
+    typedef const std::string&               Expression_t;
+    typedef std::string::const_iterator&     ExpressionIt_t;
+    typedef std::map<ErrorType, std::string> ErrorType2Name_t;
+
+    typedef double (*MyFunc_t)(const double* params, const int num);
+    typedef std::map<std::string, std::pair<int, MyFunc_t>> NoteTable_t;
+
+#define ERROR(type_, msg_, tag_) \
+    Error.type = (type_);        \
+    Error.msg  = (msg_);         \
+    goto tag_
+
+    class eXpressionCalc {
+
+    private:
+        ErrorType2Name_t ErrorType2Name;
+        TokenLevel_t     TokenLevel;
+        NoteTable_t      NoteTable;
+        Error_t          Error;
+
+        void resetError();
+
+        inline bool        checkNumber(ExpressionIt_t it, Expression_t expression);
+        std::string        readNumber(ExpressionIt_t it, Expression_t expression);
+        static inline bool checkFunc(ExpressionIt_t it, Expression_t expression);
+        std::string        readFunc(ExpressionIt_t it, Expression_t expression);
+        bool               eatWhitespace(ExpressionIt_t it, Expression_t expression);
+
+    public:
+        eXpressionCalc();
+        Notation_t reversePolishNotation(Expression_t expression);
+        double     evalNotation(const Notation_t& notation);
+    };
+}
 
 #endif // EXPRESSIONCALC_EXPRESSION_CALC_H
