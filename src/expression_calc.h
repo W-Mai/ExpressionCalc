@@ -5,6 +5,7 @@
 #ifndef EXPRESSIONCALC_EXPRESSION_CALC_H
 #define EXPRESSIONCALC_EXPRESSION_CALC_H
 
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <map>
