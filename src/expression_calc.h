@@ -32,16 +32,12 @@ typedef struct Error {
 typedef std::map<char, int>              TokenLevel_t;
 typedef std::vector<std::string>         Notation_t;
 typedef std::string                      Expression_t;
+typedef std::string                      String_t;
 typedef std::string::const_iterator      ExpressionIt_t;
 typedef std::map<ErrorType, std::string> ErrorType2Name_t;
 
 typedef double (*MyFunc_t)(const double* params, const int num);
 typedef std::map<std::string, std::pair<int, MyFunc_t>> NoteTable_t;
-
-#define ERROR(type_, msg_, tag_) \
-    Error.type = (type_);        \
-    Error.msg  = (msg_);         \
-    goto tag_
 
 // Class Declaration
 class eXpressionCalc {
@@ -57,21 +53,24 @@ private:
 
     void resetError();
 
-    bool        eatWhitespace();
-    bool        checkNumber();
-    std::string readNumber();
-    bool        checkFunc();
-    std::string readFunc();
-    bool        isNumber(const Expression_t& expr);
+    bool     eatWhitespace();
+    bool     checkNumber();
+    String_t readNumber();
+    bool     checkFunc();
+    String_t readFunc();
+    bool     isNumber(const Expression_t& expr);
 
 public:
     eXpressionCalc();
     Notation_t reversePolishNotation();
     double     evalNotation(const Notation_t& notation);
 
-    void setExpression(Expression_t expression);
+    void           setExpression(Expression_t expression);
     const Error_t& getError();
-    std::string errorToString();
+    String_t       errorToString();
+
+    void addFunc(const String_t& note, int pNum, MyFunc_t func);
+    void addToken(char token, int level);
 };
 }
 

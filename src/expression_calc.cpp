@@ -5,6 +5,11 @@
 
 #include <utility>
 
+#define ERROR(type_, msg_, tag_) \
+    Error.type = (type_);        \
+    Error.msg  = (msg_);         \
+    goto tag_
+
 namespace XCLZ {
 
 eXpressionCalc::eXpressionCalc() {
@@ -29,37 +34,37 @@ eXpressionCalc::eXpressionCalc() {
     };
 
     NoteTable = {
-        {"+",      { 2, LAMBDA_EXPR(params[0] + params[1]) }                                          },
-        { "-",     { 2, LAMBDA_EXPR(params[0] - params[1]) }                                          },
-        { "*",     { 2, LAMBDA_EXPR(params[0] * params[1]) }                                          },
-        { "/",     { 2, LAMBDA_EXPR(params[0] / params[1]) }                                          },
-        { "^",     { 2, LAMBDA_EXPR(powf(params[0], params[1])) }                                     },
-        { "%",     { 2, LAMBDA_EXPR(fmod(params[0], params[1])) }                                     },
-        { "\\",    { 2, LAMBDA_EXPR((int)((int)params[0] / (int)params[1])) }                         },
-        { "add",   { 2, LAMBDA_EXPR(params[0] + params[1]) }                                          },
-        { "sub",   { 2, LAMBDA_EXPR(params[0] - params[1]) }                                          },
-        { "mul",   { 2, LAMBDA_EXPR(params[0] * params[1]) }                                          },
-        { "div",   { 2, LAMBDA_EXPR(params[0] / params[1]) }                                          },
-        { "pow",   { 2, LAMBDA_EXPR(powf(params[0], params[1])) }                                     },
-        { "mod",   { 2, LAMBDA_EXPR(fmod(params[0], params[1])) }                                     },
-        { "divi",  { 2, LAMBDA_EXPR((int)((int)params[0] / (int)params[1])) }                         },
-        { "sqrt",  { 1, LAMBDA_EXPR(sqrt(params[0])) }                                                },
-        { "abs",   { 1, LAMBDA_EXPR(fabs(params[0])) }                                                },
-        { "sin",   { 1, LAMBDA_EXPR(sin(params[0])) }                                                 },
-        { "cos",   { 1, LAMBDA_EXPR(cos(params[0])) }                                                 },
-        { "tan",   { 1, LAMBDA_EXPR(tan(params[0])) }                                                 },
-        { "asin",  { 1, LAMBDA_EXPR(asin(params[0])) }                                                },
-        { "acos",  { 1, LAMBDA_EXPR(acos((params[0]))) }                                              },
-        { "atan",  { 1, LAMBDA_EXPR(atan(params[0])) }                                                },
-        { "ln",    { 1, LAMBDA_EXPR(log(params[0])) }                                                 },
-        { "log",   { 1, LAMBDA_EXPR(log10(params[0])) }                                               },
-        { "log2",  { 1, LAMBDA_EXPR(log2(params[0])) }                                                },
-        { "floor", { 1, LAMBDA_EXPR(floor(params[0])) }                                               },
-        { "ceil",  { 1, LAMBDA_EXPR(ceil(params[0])) }                                                },
-        { "sign",  { 1, LAMBDA_EXPR(abs(params[0]) < 1e-10 ? 0 : params[0] > 0 ? 1
+        {"+",        { 2, LAMBDA_EXPR(params[0] + params[1]) }                                        },
+        { "-",       { 2, LAMBDA_EXPR(params[0] - params[1]) }                                        },
+        { "*",       { 2, LAMBDA_EXPR(params[0] * params[1]) }                                        },
+        { "/",       { 2, LAMBDA_EXPR(params[0] / params[1]) }                                        },
+        { "^",       { 2, LAMBDA_EXPR(powf(params[0], params[1])) }                                   },
+        { "%",       { 2, LAMBDA_EXPR(fmod(params[0], params[1])) }                                   },
+        { "\\",      { 2, LAMBDA_EXPR((int)((int)params[0] / (int)params[1])) }                       },
+        { "addFunc", { 2, LAMBDA_EXPR(params[0] + params[1]) }                                        },
+        { "sub",     { 2, LAMBDA_EXPR(params[0] - params[1]) }                                        },
+        { "mul",     { 2, LAMBDA_EXPR(params[0] * params[1]) }                                        },
+        { "div",     { 2, LAMBDA_EXPR(params[0] / params[1]) }                                        },
+        { "pow",     { 2, LAMBDA_EXPR(powf(params[0], params[1])) }                                   },
+        { "mod",     { 2, LAMBDA_EXPR(fmod(params[0], params[1])) }                                   },
+        { "divi",    { 2, LAMBDA_EXPR((int)((int)params[0] / (int)params[1])) }                       },
+        { "sqrt",    { 1, LAMBDA_EXPR(sqrt(params[0])) }                                              },
+        { "abs",     { 1, LAMBDA_EXPR(fabs(params[0])) }                                              },
+        { "sin",     { 1, LAMBDA_EXPR(sin(params[0])) }                                               },
+        { "cos",     { 1, LAMBDA_EXPR(cos(params[0])) }                                               },
+        { "tan",     { 1, LAMBDA_EXPR(tan(params[0])) }                                               },
+        { "asin",    { 1, LAMBDA_EXPR(asin(params[0])) }                                              },
+        { "acos",    { 1, LAMBDA_EXPR(acos((params[0]))) }                                            },
+        { "atan",    { 1, LAMBDA_EXPR(atan(params[0])) }                                              },
+        { "ln",      { 1, LAMBDA_EXPR(log(params[0])) }                                               },
+        { "log",     { 1, LAMBDA_EXPR(log10(params[0])) }                                             },
+        { "log2",    { 1, LAMBDA_EXPR(log2(params[0])) }                                              },
+        { "floor",   { 1, LAMBDA_EXPR(floor(params[0])) }                                             },
+        { "ceil",    { 1, LAMBDA_EXPR(ceil(params[0])) }                                              },
+        { "sign",    { 1, LAMBDA_EXPR(abs(params[0]) < 1e-10 ? 0 : params[0] > 0 ? 1
                                                                               : -1) }},
-        { "PI",    { 0, LAMBDA_EXPR(M_PI) }                                                           },
-        { "E",     { 0, LAMBDA_EXPR(M_E) }                                                            },
+        { "PI",      { 0, LAMBDA_EXPR(M_PI) }                                                         },
+        { "E",       { 0, LAMBDA_EXPR(M_E) }                                                          },
     };
 }
 
@@ -232,6 +237,17 @@ const Error_t& eXpressionCalc::getError() {
 
 std::string eXpressionCalc::errorToString() {
     return ErrorType2Name[getError().type];
+}
+
+void eXpressionCalc::addFunc(const std::string& note, int pNum, MyFunc_t func) {
+    NoteTable[note] = {
+        pNum,
+        func
+    };
+}
+
+void eXpressionCalc::addToken(char token, int level) {
+    TokenLevel[token] = level;
 }
 }
 
