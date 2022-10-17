@@ -1,4 +1,4 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 
 build_dir="build"
 mkdir -p $build_dir && pushd $build_dir
