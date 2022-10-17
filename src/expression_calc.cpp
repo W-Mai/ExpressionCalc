@@ -1,109 +1,135 @@
-﻿#include "expression_calc.h"
+﻿#pragma clang diagnostic push
+#pragma ide diagnostic   ignored "readability-convert-member-functions-to-static"
 
-std::map<ErrorType, std::string> ErrorType2Name = {
-    {ErrorType::BracketNotMatched, "Bracket Not Matched"},
-    { ErrorType::FunctionNotFound, "Function Not Found" },
-    { ErrorType::EvalError,        "Evaluate Error"     },
-    { ErrorType::SyntaxError,      "Syntax Error"       }
-};
+#include "expression_calc.h"
 
-TokenLevel_t __attribute__((weak)) TokenLevel {
-    {'+',   1},
-    { '-',  1},
-    { '*',  2},
-    { '/',  2},
-    { '^',  2},
-    { '%',  2},
-    { '\\', 2},
-    { '(',  0},
-    { ')',  0}
-};
+#include <utility>
 
-NoteTable_t __attribute__((weak)) NoteTable {
-    {"+",      { 2, LAMBDA_EXPR(params[0] + params[1]) }                                      },
-    { "-",     { 2, LAMBDA_EXPR(params[0] - params[1]) }                                      },
-    { "*",     { 2, LAMBDA_EXPR(params[0] * params[1]) }                                      },
-    { "/",     { 2, LAMBDA_EXPR(params[0] / params[1]) }                                      },
-    { "^",     { 2, LAMBDA_EXPR(powf(params[0], params[1])) }                                 },
-    { "%",     { 2, LAMBDA_EXPR(fmod(params[0], params[1])) }                                 },
-    { "\\",    { 2, LAMBDA_EXPR((int)((int)params[0] / (int)params[1])) }                     },
-    { "add",   { 2, LAMBDA_EXPR(params[0] + params[1]) }                                      },
-    { "sub",   { 2, LAMBDA_EXPR(params[0] - params[1]) }                                      },
-    { "mul",   { 2, LAMBDA_EXPR(params[0] * params[1]) }                                      },
-    { "div",   { 2, LAMBDA_EXPR(params[0] / params[1]) }                                      },
-    { "pow",   { 2, LAMBDA_EXPR(powf(params[0], params[1])) }                                 },
-    { "mod",   { 2, LAMBDA_EXPR(fmod(params[0], params[1])) }                                 },
-    { "divi",  { 2, LAMBDA_EXPR((int)((int)params[0] / (int)params[1])) }                     },
-    { "sqrt",  { 1, LAMBDA_EXPR(sqrt(params[0])) }                                            },
-    { "abs",   { 1, LAMBDA_EXPR(fabs(params[0])) }                                            },
-    { "sin",   { 1, LAMBDA_EXPR(sin(params[0])) }                                             },
-    { "cos",   { 1, LAMBDA_EXPR(cos(params[0])) }                                             },
-    { "tan",   { 1, LAMBDA_EXPR(tan(params[0])) }                                             },
-    { "asin",  { 1, LAMBDA_EXPR(asin(params[0])) }                                            },
-    { "acos",  { 1, LAMBDA_EXPR(acos((params[0]))) }                                          },
-    { "atan",  { 1, LAMBDA_EXPR(atan(params[0])) }                                            },
-    { "ln",    { 1, LAMBDA_EXPR(log(params[0])) }                                             },
-    { "log",   { 1, LAMBDA_EXPR(log10(params[0])) }                                           },
-    { "log2",  { 1, LAMBDA_EXPR(log2(params[0])) }                                            },
-    { "floor", { 1, LAMBDA_EXPR(floor(params[0])) }                                           },
-    { "ceil",  { 1, LAMBDA_EXPR(ceil(params[0])) }                                            },
-    { "sign",  { 1, LAMBDA_EXPR(abs(params[0]) < 1e-10 ? 0 : params[0] > 0 ? 1
-                                                                          : -1) }},
-    { "PI",    { 0, LAMBDA_EXPR(M_PI) }                                                       },
-    { "E",     { 0, LAMBDA_EXPR(M_E) }                                                        },
-};
+#define ERROR(type_, msg_, tag_) \
+    Error.type = (type_);        \
+    Error.msg  = (msg_);         \
+    goto tag_
 
-inline bool checkNumber(std::string::const_iterator& it, const std::string& expression) {
-    return isdigit(*it)
-        || ((it == expression.begin() || *(it - 1) == '(')
-            && ((*it == '-' || *it == '+') && (it + 1) != expression.end()))
-        || *it == '.' && (it + 1) != expression.end() && isdigit(*(it + 1));
+namespace XCLZ {
+
+eXpressionCalc::eXpressionCalc() {
+    ErrorType2Name = {
+        {ErrorType::Well,               "Well Done"          },
+        { ErrorType::BracketNotMatched, "Bracket Not Matched"},
+        { ErrorType::FunctionNotFound,  "Function Not Found" },
+        { ErrorType::EvalError,         "Evaluate Error"     },
+        { ErrorType::SyntaxError,       "Syntax Error"       }
+    };
+
+    TokenLevel = {
+        {'+',   1},
+        { '-',  1},
+        { '*',  2},
+        { '/',  2},
+        { '^',  2},
+        { '%',  2},
+        { '\\', 2},
+        { '(',  0},
+        { ')',  0}
+    };
+
+    NoteTable = {
+        {"+",        { 2, LAMBDA_EXPR(params[0] + params[1]) }                                        },
+        { "-",       { 2, LAMBDA_EXPR(params[0] - params[1]) }                                        },
+        { "*",       { 2, LAMBDA_EXPR(params[0] * params[1]) }                                        },
+        { "/",       { 2, LAMBDA_EXPR(params[0] / params[1]) }                                        },
+        { "^",       { 2, LAMBDA_EXPR(powf(params[0], params[1])) }                                   },
+        { "%",       { 2, LAMBDA_EXPR(fmod(params[0], params[1])) }                                   },
+        { "\\",      { 2, LAMBDA_EXPR((int)((int)params[0] / (int)params[1])) }                       },
+        { "addFunc", { 2, LAMBDA_EXPR(params[0] + params[1]) }                                        },
+        { "sub",     { 2, LAMBDA_EXPR(params[0] - params[1]) }                                        },
+        { "mul",     { 2, LAMBDA_EXPR(params[0] * params[1]) }                                        },
+        { "div",     { 2, LAMBDA_EXPR(params[0] / params[1]) }                                        },
+        { "pow",     { 2, LAMBDA_EXPR(powf(params[0], params[1])) }                                   },
+        { "mod",     { 2, LAMBDA_EXPR(fmod(params[0], params[1])) }                                   },
+        { "divi",    { 2, LAMBDA_EXPR((int)((int)params[0] / (int)params[1])) }                       },
+        { "sqrt",    { 1, LAMBDA_EXPR(sqrt(params[0])) }                                              },
+        { "abs",     { 1, LAMBDA_EXPR(fabs(params[0])) }                                              },
+        { "sin",     { 1, LAMBDA_EXPR(sin(params[0])) }                                               },
+        { "cos",     { 1, LAMBDA_EXPR(cos(params[0])) }                                               },
+        { "tan",     { 1, LAMBDA_EXPR(tan(params[0])) }                                               },
+        { "asin",    { 1, LAMBDA_EXPR(asin(params[0])) }                                              },
+        { "acos",    { 1, LAMBDA_EXPR(acos((params[0]))) }                                            },
+        { "atan",    { 1, LAMBDA_EXPR(atan(params[0])) }                                              },
+        { "ln",      { 1, LAMBDA_EXPR(log(params[0])) }                                               },
+        { "log",     { 1, LAMBDA_EXPR(log10(params[0])) }                                             },
+        { "log2",    { 1, LAMBDA_EXPR(log2(params[0])) }                                              },
+        { "floor",   { 1, LAMBDA_EXPR(floor(params[0])) }                                             },
+        { "ceil",    { 1, LAMBDA_EXPR(ceil(params[0])) }                                              },
+        { "sign",    { 1, LAMBDA_EXPR(abs(params[0]) < 1e-10 ? 0 : params[0] > 0 ? 1
+                                                                              : -1) }},
+        { "PI",      { 0, LAMBDA_EXPR(M_PI) }                                                         },
+        { "E",       { 0, LAMBDA_EXPR(M_E) }                                                          },
+    };
 }
 
-std::string readNumber(std::string::const_iterator& it, const std::string& expression) {
+void eXpressionCalc::resetError() {
+    Error.type = ErrorType::Well;
+    Error.msg  = "";
+}
+
+inline bool eXpressionCalc::checkNumber() {
+    return isdigit(*ExprIt)
+        || ((ExprIt == Expr.begin() || *(ExprIt - 1) == '(')
+            && ((*ExprIt == '-' || *ExprIt == '+') && (ExprIt + 1) != Expr.end()))
+        || *ExprIt == '.' && (ExprIt + 1) != Expr.end() && isdigit(*(ExprIt + 1));
+}
+
+std::string eXpressionCalc::readNumber() {
     int         dot_count = 0;
     std::string rtn;
-    while (it != expression.end() && checkNumber(it, expression)) {
-        if (*it == '.') dot_count++;
+    while (ExprIt != Expr.end() && checkNumber()) {
+        if (*ExprIt == '.') dot_count++;
         if (dot_count > 1) break;
-        if (*it != '+') rtn += *it++;
-        else ++it;
+        if (*ExprIt != '+') rtn += *ExprIt++;
+        else ++ExprIt;
     }
     return rtn;
 }
 
-inline bool checkFunc(std::string::const_iterator& it, const std::string& expression) {
-    return isalnum(*it);
+inline bool eXpressionCalc::checkFunc() {
+    return isalnum(*ExprIt);
 }
 
-std::string readFunc(std::string::const_iterator& it, const std::string& expression) {
+std::string eXpressionCalc::readFunc() {
     std::string rtn;
-    while (it != expression.end() && checkFunc(it, expression)) rtn += *it++;
+    while (ExprIt != Expr.end() && checkFunc()) rtn += *ExprIt++;
     return rtn;
 }
 
-bool eatWhitespace(std::string::const_iterator& it, const std::string& expression) {
-    while (it != expression.end() && (isspace(*it) || *it == ',')) it++;
-    return it == expression.end();
+bool eXpressionCalc::eatWhitespace() {
+    while (ExprIt != Expr.end() && (isspace(*ExprIt) || *ExprIt == ',')) ExprIt++;
+    return ExprIt == Expr.end();
 }
 
-Notation_t reversePolishNotation(const std::string& expression, const TokenLevel_t& tokenLevel, Error& e) {
-    e.type = ErrorType::Well;
+bool eXpressionCalc::isNumber(const Expression_t& expr) {
+    return std::all_of(expr.begin(), expr.end(), [](char ch) -> bool {
+        return isdigit(ch) || ch == '.';
+    });
+}
+
+Notation_t eXpressionCalc::reversePolishNotation() {
+    resetError();
     Notation_t                                                      result;
     std::vector<std::string::const_iterator>                        buffer;
     std::stack<std::pair<std::string, std::string::const_iterator>> tmpFunc;
-    for (auto it = expression.begin(); it != expression.end();) {
-        if (eatWhitespace(it, expression))
+    for (ExprIt = Expr.begin(); ExprIt != Expr.end();) {
+        if (eatWhitespace())
             break;
 
-        auto ch = *it;
-        if (!checkNumber(it, expression)) {
-            if (checkFunc(it, expression)) {
-                tmpFunc.push({ readFunc(it, expression), it });
+        auto ch = *ExprIt;
+        if (!checkNumber()) {
+            if (checkFunc()) {
+                tmpFunc.push({ readFunc(), ExprIt });
                 continue;
             }
             if (ch == '(' || buffer.empty()) {
-                buffer.push_back(it);
+                buffer.push_back(ExprIt);
             } else if (ch == ')') {
                 while (!buffer.empty() && *buffer.back() != '(') {
                     result.push_back(std::string { *buffer.back() });
@@ -116,31 +142,31 @@ Notation_t reversePolishNotation(const std::string& expression, const TokenLevel
                 }
 
                 if (buffer.empty()) {
-                    ERROR(e, ErrorType::BracketNotMatched, std::string({ '(' }), result);
+                    ERROR(ErrorType::BracketNotMatched, std::string({ '(' }), ERROR_BUT_RETURN_RESULT_TAG);
                 } else {
                     buffer.pop_back();
                 }
 
             } else {
-                auto search_res_ch   = tokenLevel.find(ch);
-                auto search_res_back = tokenLevel.find(*buffer.back());
-                if (search_res_ch == tokenLevel.end()) {
-                    ERROR(e, ErrorType::SyntaxError, std::string({ ch }), result);
+                auto search_res_ch   = TokenLevel.find(ch);
+                auto search_res_back = TokenLevel.find(*buffer.back());
+                if (search_res_ch == TokenLevel.end()) {
+                    ERROR(ErrorType::SyntaxError, std::string({ ch }), ERROR_BUT_RETURN_RESULT_TAG);
                 }
-                if (search_res_back == tokenLevel.end()) {
-                    ERROR(e, ErrorType::SyntaxError, std::string({ *buffer.back() }), result);
+                if (search_res_back == TokenLevel.end()) {
+                    ERROR(ErrorType::SyntaxError, std::string({ *buffer.back() }), ERROR_BUT_RETURN_RESULT_TAG);
                 }
-                if (tokenLevel.at(ch) <= tokenLevel.at(*buffer.back())) {
-                    while (!buffer.empty() && tokenLevel.at(ch) <= tokenLevel.at(*buffer.back())) {
+                if (TokenLevel.at(ch) <= TokenLevel.at(*buffer.back())) {
+                    while (!buffer.empty() && TokenLevel.at(ch) <= TokenLevel.at(*buffer.back())) {
                         result.push_back(std::string { *buffer.back() });
                         buffer.pop_back();
                     }
                 }
-                buffer.push_back(it);
+                buffer.push_back(ExprIt);
             }
-            ++it;
+            ++ExprIt;
         } else {
-            std::string num = readNumber(it, expression);
+            std::string num = readNumber();
             result.push_back(num);
         }
     }
@@ -149,28 +175,29 @@ Notation_t reversePolishNotation(const std::string& expression, const TokenLevel
         result.push_back(std::string { *buffer.back() });
         buffer.pop_back();
     }
+
+ERROR_BUT_RETURN_RESULT_TAG:
     return result;
 }
 
-double evalNotation(const Notation_t& notation, Error& e) {
-    e.type = ErrorType::Well;
+double eXpressionCalc::evalNotation(const Notation_t& notation) {
+    resetError();
     if (notation.empty())
         return INFINITY;
 
     std::stack<double> resultStack;
 
     for (auto& note : notation) {
-        auto it = note.begin();
-        if (checkNumber(it, note)) {
+        if (isNumber(note)) {
             resultStack.push(strtod(note.c_str(), nullptr));
         } else {
             if (note == "(" || note == ")") {
-                ERROR(e, ErrorType::BracketNotMatched, note, INFINITY);
+                ERROR(ErrorType::BracketNotMatched, note, ERROR_BUT_RETURN_INFINITY_TAG);
             }
 
             auto nt_it = NoteTable.find(note);
             if (nt_it == NoteTable.end()) {
-                ERROR(e, ErrorType::FunctionNotFound, note, INFINITY);
+                ERROR(ErrorType::FunctionNotFound, note, ERROR_BUT_RETURN_INFINITY_TAG);
             }
 
             const auto pCount = nt_it->second.first;
@@ -178,7 +205,7 @@ double evalNotation(const Notation_t& notation, Error& e) {
             for (auto i = pCount - 1; i >= 0; i--) {
                 if (resultStack.empty()) {
                     delete[] param;
-                    ERROR(e, ErrorType::SyntaxError, note, INFINITY);
+                    ERROR(ErrorType::SyntaxError, note, ERROR_BUT_RETURN_INFINITY_TAG);
                 }
                 param[i] = resultStack.top();
                 resultStack.pop();
@@ -191,8 +218,37 @@ double evalNotation(const Notation_t& notation, Error& e) {
     }
 
     if (resultStack.size() > 1) {
-        ERROR(e, ErrorType::EvalError, "Can't Evaluate Correctly", resultStack.top());
+        ERROR(ErrorType::EvalError, "Can't Evaluate Correctly", ERROR_BUT_RETURN_RESULT_TAG);
     }
 
+ERROR_BUT_RETURN_RESULT_TAG:
     return resultStack.top();
+ERROR_BUT_RETURN_INFINITY_TAG:
+    return INFINITY;
 }
+
+void eXpressionCalc::setExpression(Expression_t expression) {
+    Expr = std::move(expression);
+}
+
+const Error_t& eXpressionCalc::getError() {
+    return Error;
+}
+
+std::string eXpressionCalc::errorToString() {
+    return ErrorType2Name[getError().type];
+}
+
+void eXpressionCalc::addFunc(const std::string& note, int pNum, MyFunc_t func) {
+    NoteTable[note] = {
+        pNum,
+        func
+    };
+}
+
+void eXpressionCalc::addToken(char token, int level) {
+    TokenLevel[token] = level;
+}
+}
+
+#pragma clang diagnostic pop

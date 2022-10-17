@@ -5,14 +5,17 @@
 #ifndef EXPRESSIONCALC_EXPRESSION_CALC_H
 #define EXPRESSIONCALC_EXPRESSION_CALC_H
 
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <map>
 #include <stack>
+#include <string>
 #include <vector>
 
-typedef std::map<char, int>      TokenLevel_t;
-typedef std::vector<std::string> Notation_t;
+#define LAMBDA_EXPR(expr) [](const double* params, const int num) -> double { return expr; }
+
+namespace XCLZ {
 
 enum class ErrorType {
     Well,
@@ -22,32 +25,54 @@ enum class ErrorType {
     BracketNotMatched
 };
 
-struct Error {
+typedef struct Error {
     ErrorType   type = ErrorType::Well;
     std::string msg;
-};
+} Error_t;
+
+typedef std::map<char, int>              TokenLevel_t;
+typedef std::vector<std::string>         Notation_t;
+typedef std::string                      Expression_t;
+typedef std::string                      String_t;
+typedef std::string::const_iterator      ExpressionIt_t;
+typedef std::map<ErrorType, std::string> ErrorType2Name_t;
 
 typedef double (*MyFunc_t)(const double* params, const int num);
 typedef std::map<std::string, std::pair<int, MyFunc_t>> NoteTable_t;
 
-#define ERROR(err, type_, msg_, res_) \
-    (err).type = (type_);             \
-    (err).msg  = (msg_);              \
-    return res_
+// Class Declaration
+class eXpressionCalc {
 
-#define LAMBDA_EXPR(expr) [](const double* params, const int num) -> double { return expr; }
+private:
+    ErrorType2Name_t ErrorType2Name;
+    TokenLevel_t     TokenLevel;
+    NoteTable_t      NoteTable;
+    Error_t          Error;
 
-extern std::map<ErrorType, std::string> ErrorType2Name;
-extern TokenLevel_t                     TokenLevel;
-extern NoteTable_t                      NoteTable;
+    Expression_t   Expr;
+    ExpressionIt_t ExprIt;
 
-Notation_t reversePolishNotation(const std::string& expression, const TokenLevel_t& tokenLevel, Error& e);
+    void resetError();
 
-inline bool checkNumber(std::string::const_iterator& it, const std::string& expression);
-std::string readNumber(std::string::const_iterator& it, const std::string& expression);
-inline bool checkFunc(std::string::const_iterator& it, const std::string& expression);
-std::string readFunc(std::string::const_iterator& it, const std::string& expression);
+    bool     eatWhitespace();
+    bool     checkNumber();
+    String_t readNumber();
+    bool     checkFunc();
+    String_t readFunc();
+    bool     isNumber(const Expression_t& expr);
 
-double evalNotation(const Notation_t& notation, Error& e);
+public:
+    eXpressionCalc();
+    Notation_t reversePolishNotation();
+    double     evalNotation(const Notation_t& notation);
+
+    void           setExpression(Expression_t expression);
+    const Error_t& getError();
+    String_t       errorToString();
+
+    void addFunc(const String_t& note, int pNum, MyFunc_t func);
+    void addToken(char token, int level);
+};
+}
 
 #endif // EXPRESSIONCALC_EXPRESSION_CALC_H
